@@ -42,6 +42,7 @@ var ConnectKinds = []ConnectKind{
 	// key; the browser step runs on the gateway (gateway/providers_chatgpt.go).
 	{KindChatGPT, "ChatGPT plan (Plus/Pro)", "chatgpt", "https://api.openai.com/v1", "sign in with ChatGPT in the browser: your plan's allowance, no API key", false, "", false},
 	{"openrouter", "OpenRouter", "openrouter", "https://openrouter.ai/api/v1", "an API key from openrouter.ai/keys: every model, one key", false, "OPENROUTER_API_KEY", false},
+	{"aimlapi", "AI/ML API", "chat", "https://api.aimlapi.com/v1", "an API key from aimlapi.com/app/keys: many vendors' models, one key", false, "AIMLAPI_API_KEY", false},
 	{"anthropic", "Anthropic", "anthropic", "https://api.anthropic.com", "an API key from console.anthropic.com", false, "ANTHROPIC_API_KEY", false},
 	{"openai", "OpenAI", "responses", "https://api.openai.com/v1", "an API key from platform.openai.com", false, "OPENAI_API_KEY", false},
 	{"gemini", "Google Gemini", "chat", "https://generativelanguage.googleapis.com/v1beta/openai", "an API key from Google AI Studio", false, "GEMINI_API_KEY", false},

@@ -32,6 +32,7 @@ import (
 //	BASETEN_API_KEY=…             [BASETEN_BASE_URL=https://inference.baseten.co/v1]
 //	GROQ_API_KEY=…                [GROQ_BASE_URL=https://api.groq.com/openai/v1]
 //	DEEPSEEK_API_KEY=…            [DEEPSEEK_BASE_URL=https://api.deepseek.com/v1]
+//	AIMLAPI_API_KEY=…             [AIMLAPI_BASE_URL=https://api.aimlapi.com/v1]
 //	MEMDOOR_MODEL=<model id>      required for OpenAI and Google (their ids
 //	                              change; name the one your key may use);
 //	                              Anthropic defaults to claude-sonnet-5
@@ -59,6 +60,7 @@ const (
 	VendorBaseten    = "baseten"
 	VendorGroq       = "groq"
 	VendorDeepSeek   = "deepseek"
+	VendorAIMLAPI    = "aimlapi"
 	// VendorGateway is a company's own AI gateway speaking the OpenAI
 	// Responses API (responses.go); VendorGatewayChat the same gateway on
 	// the chat/completions shape (AI_GATEWAY_API=chat).
@@ -84,6 +86,8 @@ const (
 	groqDefaultContext     = 128_000
 	deepseekDefaultBase    = "https://api.deepseek.com/v1"
 	deepseekDefaultContext = 128_000
+	aimlapiDefaultBase     = "https://api.aimlapi.com/v1"
+	aimlapiDefaultContext  = 128_000
 )
 
 // VendorEngine is the engine for a gateway holding a company's vendor key,
@@ -139,6 +143,7 @@ func VendorEngine() (re RemoteEngine, ok bool, reason string) {
 		{VendorBaseten, "BASETEN_API_KEY", "BASETEN_BASE_URL", basetenDefaultBase, basetenDefaultContext},
 		{VendorGroq, "GROQ_API_KEY", "GROQ_BASE_URL", groqDefaultBase, groqDefaultContext},
 		{VendorDeepSeek, "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", deepseekDefaultBase, deepseekDefaultContext},
+		{VendorAIMLAPI, "AIMLAPI_API_KEY", "AIMLAPI_BASE_URL", aimlapiDefaultBase, aimlapiDefaultContext},
 	} {
 		key := strings.TrimSpace(os.Getenv(v.keyVar))
 		if key == "" {

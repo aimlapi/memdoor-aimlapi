@@ -345,6 +345,7 @@ func builtInProviders() []Provider {
 		Provider{ID: "baseten", Name: "Baseten", API: APIChat, Base: envOr("BASETEN_BASE_URL", basetenDefaultBase), Key: os.Getenv("BASETEN_API_KEY"), KeySource: "env BASETEN_API_KEY", Context: basetenDefaultContext, BuiltIn: true},
 		Provider{ID: "groq", Name: "Groq", API: APIChat, Base: envOr("GROQ_BASE_URL", groqDefaultBase), Key: os.Getenv("GROQ_API_KEY"), KeySource: "env GROQ_API_KEY", Context: groqDefaultContext, BuiltIn: true},
 		Provider{ID: "deepseek", Name: "DeepSeek", API: APIChat, Base: envOr("DEEPSEEK_BASE_URL", deepseekDefaultBase), Key: os.Getenv("DEEPSEEK_API_KEY"), KeySource: "env DEEPSEEK_API_KEY", Context: deepseekDefaultContext, BuiltIn: true},
+		Provider{ID: "aimlapi", Name: "AI/ML API", API: APIChat, Base: envOr("AIMLAPI_BASE_URL", aimlapiDefaultBase), Key: os.Getenv("AIMLAPI_API_KEY"), KeySource: "env AIMLAPI_API_KEY", Context: aimlapiDefaultContext, BuiltIn: true},
 		Provider{ID: OpenRouterID, Name: "OpenRouter", API: APIOpenRouter, Base: OpenRouterBase, Key: byokEnvKey(), KeySource: "env " + ByokKeyVar(), Context: byokCtxLen, BuiltIn: true},
 		Provider{ID: TypeSafeID, Name: "TypeSafe (Jev, decisions)", API: APIDecisions, Base: envOr("MEMDOOR_SYSTEMONE_URL", typesafeDefault), Key: typesafeKey(), KeySource: "env " + typesafeKeyVar(), BuiltIn: true},
 	)
@@ -675,6 +676,8 @@ func providerOfEngine(re *RemoteEngine) string {
 		return "groq"
 	case re.Vendor == VendorDeepSeek:
 		return "deepseek"
+	case re.Vendor == VendorAIMLAPI:
+		return "aimlapi"
 	}
 	return ""
 }

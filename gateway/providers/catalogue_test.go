@@ -142,3 +142,45 @@ func TestCatalogueLimitsMatchAVendorsModel(t *testing.T) {
 		t.Fatal("no key, no catalogue")
 	}
 }
+
+// The AI/ML API catalogue lists every kind of model together: chat with tools
+// is kept, the fast model leads, and the figures come from its own fields.
+func TestAIMLAPIReaderKeepsToolCapableChat(t *testing.T) {
+	var query string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.RawQuery
+		_, _ = io.WriteString(w, `{"data":[
+		  {"id":"a/no-tools","type":"openai/chat-completions","info":{"name":"No tools","contextLength":1000},"capabilities":["streaming"]},
+		  {"id":"a/first","type":"openai/chat-completions","info":{"contextLength":2000},"capabilities":["tools"]},
+		  {"id":"a/picture","type":"openai/image-generations","info":{"name":"Picture"},"capabilities":["tools"]},
+		  {"id":"a/responses","type":"openai/responses/submit","info":{"name":"Responses"},"capabilities":["tools"]},
+		  {"id":"z-ai/glm-5.3-flash","type":"openai/chat-completions",
+		   "info":{"name":"GLM 5.3 Flash","contextLength":1048576,"outputMax":131072},
+		   "modalities":{"input":["image","text"]},"capabilities":["reasoning","tools"],
+		   "pricing":{"units":[
+		     {"name":"token","content":"text","origin":"provided","phase":"inference","price":0.15,"per":1000000},
+		     {"name":"token","content":"text","origin":"generated","phase":"inference","price":0.5,"per":1000000},
+		     {"name":"token","content":"text","origin":"generated","phase":"reasoning","price":9,"per":1000000},
+		     {"name":"token","content":"text","origin":"cached","phase":"inference","price":0.03,"per":1000000},
+		     {"name":"call","content":"structured","origin":"generated","phase":"inference","price":7,"per":1}]}}]}`)
+	}))
+	defer srv.Close()
+	p := Provider{ID: "aimlapi", API: APIChat, Base: srv.URL + "/v1", Key: "k"}
+	list, err := readerFor(p).ListModels(context.Background(), p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if query != "include=all" {
+		t.Fatalf("capabilities and prices need include=all, asked %q", query)
+	}
+	if len(list) != 2 || list[0].ID != aimlapiFastModel || list[1].ID != "a/first" {
+		t.Fatalf("chat with tools, the fast model first: %+v", list)
+	}
+	m := list[0]
+	if m.Name != "GLM 5.3 Flash" || m.Context != 1048576 || m.MaxOutput != 131072 || !m.Tools || !m.Thinking || len(m.Inputs) != 2 || m.InPerM != 0.15 || m.OutPerM != 0.5 {
+		t.Fatalf("the model's own figures: %+v", m)
+	}
+	if list[1].Name != "a/first" || list[1].Thinking {
+		t.Fatalf("no name falls back to the id, no reasoning stays off: %+v", list[1])
+	}
+}

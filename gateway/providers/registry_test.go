@@ -15,7 +15,7 @@ import (
 
 func clearProviderEnv(t *testing.T) {
 	t.Helper()
-	for _, v := range []string{"AI_GATEWAY_BASE_URL", "AI_GATEWAY_TOKEN", "AI_GATEWAY_API", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "OPENAI_API_KEY", "OPENAI_BASE_URL", "GEMINI_API_KEY", "GEMINI_BASE_URL", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "GROK_API_KEY", "OPEN_ROUTER_API_KEY", "OPENROUTER_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR_HEADERS", "MEMDOOR_BYOK"} {
+	for _, v := range []string{"AI_GATEWAY_BASE_URL", "AI_GATEWAY_TOKEN", "AI_GATEWAY_API", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "OPENAI_API_KEY", "OPENAI_BASE_URL", "GEMINI_API_KEY", "GEMINI_BASE_URL", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "AIMLAPI_API_KEY", "GROK_API_KEY", "OPEN_ROUTER_API_KEY", "OPENROUTER_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR_HEADERS", "MEMDOOR_BYOK"} {
 		t.Setenv(v, "")
 	}
 	t.Setenv("HOME", t.TempDir())
@@ -271,5 +271,26 @@ func TestAModelPulledAfterConnectIsFoundOnTheNextPin(t *testing.T) {
 	}
 	if reads.Load()-n != 1 {
 		t.Fatalf("a miss re-reads the list once, not more: %d reads", reads.Load()-n)
+	}
+}
+
+func TestAIMLAPIIsABuiltInBeforeOpenRouter(t *testing.T) {
+	clearProviderEnv(t)
+	t.Setenv("AIMLAPI_BASE_URL", "")
+	list := Providers()
+	at := map[string]int{}
+	for i, p := range list {
+		at[p.ID] = i
+	}
+	p, ok := FindProvider("aimlapi")
+	if !ok || p.API != APIChat || p.Base != "https://api.aimlapi.com/v1" || !p.BuiltIn || p.Connected() {
+		t.Fatalf("listed, not connected with no key: %+v %v", p, ok)
+	}
+	if at["aimlapi"] != at[OpenRouterID]-1 {
+		t.Fatalf("beside the vendors, before OpenRouter: %v", at)
+	}
+	t.Setenv("AIMLAPI_API_KEY", "aiml-key")
+	if p, _ := FindProvider("aimlapi"); !p.Connected() || p.KeySource != "env AIMLAPI_API_KEY" {
+		t.Fatalf("connected by its variable: %+v", p)
 	}
 }

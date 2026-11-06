@@ -45,6 +45,15 @@ reads, named and not offered; the sign-ins under "Sign in, no key:"
 - One key for 380 tool-capable models; the ladder, `/model` with real
   prices and host ordering live here.
 
+## AI/ML API
+
+- **Key**: `AIMLAPI_API_KEY`, from aimlapi.com/app/keys · base `https://api.aimlapi.com/v1`
+- **Its API states**: `contextLength`, `outputMax`, prices, modalities,
+  capabilities. Only chat models with tools are listed.
+- **Fast model**: `z-ai/glm-5.3-flash`, listed first, so `memdoor connect
+  aimlapi` probes it.
+- Requests carry `X-AIMLAPI-Source: agent/memdoor`, to that host only.
+
 ## ChatGPT Plus or Pro — no key
 
 - **Sign in**: `memdoor connect chatgpt`, or `/connect chatgpt` in the

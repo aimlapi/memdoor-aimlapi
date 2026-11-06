@@ -24,6 +24,7 @@ const (
 	ProviderXAI        Provider = "xai"
 	ProviderDeepSeek   Provider = "deepseek"
 	ProviderBaseten    Provider = "baseten"
+	ProviderAIMLAPI    Provider = "aimlapi"
 	ProviderTypeSafe   Provider = "typesafe"
 )
 
@@ -73,10 +74,11 @@ func ProvidersOf(value string) []Provider {
 }
 
 // providerNames are the providers' own variable names for the keys that
-// have no shape of their own (Baseten's, TypeSafe's): under that name, a
+// have no shape of their own (Baseten's, AI/ML API's, TypeSafe's): under that name, a
 // value is that provider's key. A shaped key needs no name.
 var providerNames = map[string]Provider{
 	"BASETEN_API_KEY":           ProviderBaseten,
+	"AIMLAPI_API_KEY":           ProviderAIMLAPI,
 	"TYPESAFE_API_KEY":          ProviderTypeSafe,
 	"MEMDOOR_SYSTEMONE_API_KEY": ProviderTypeSafe,
 }

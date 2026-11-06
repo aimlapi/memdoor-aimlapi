@@ -14,7 +14,7 @@ import (
 var modelKeys = map[string]bool{
 	"OPEN_ROUTER_API_KEY": true, "OPENROUTER_API_KEY": true,
 	"ANTHROPIC_API_KEY": true, "OPENAI_API_KEY": true, "GEMINI_API_KEY": true,
-	"BASETEN_API_KEY": true, "GROQ_API_KEY": true, "DEEPSEEK_API_KEY": true,
+	"BASETEN_API_KEY": true, "GROQ_API_KEY": true, "DEEPSEEK_API_KEY": true, "AIMLAPI_API_KEY": true,
 	"XAI_API_KEY": true, "GROK_API_KEY": true, "TYPESAFE_API_KEY": true,
 	"MEMDOOR_SYSTEMONE_API_KEY": true, "AI_GATEWAY_TOKEN": true,
 }

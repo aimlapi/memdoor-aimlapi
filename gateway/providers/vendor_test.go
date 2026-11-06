@@ -12,7 +12,7 @@ import (
 // key the developer creates — Anthropic, Google, OpenAI — or the company AI
 // gateway in front of one; the default provider must be off).
 func TestVendorEngineFromTheEnvironment(t *testing.T) {
-	for _, v := range []string{"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "GROK_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR", "MEMDOOR_MODEL_CONTEXT", "ANTHROPIC_BASE_URL", "OPENAI_BASE_URL", "GEMINI_BASE_URL"} {
+	for _, v := range []string{"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "AIMLAPI_API_KEY", "GROK_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR", "MEMDOOR_MODEL_CONTEXT", "ANTHROPIC_BASE_URL", "OPENAI_BASE_URL", "GEMINI_BASE_URL"} {
 		t.Setenv(v, "")
 	}
 	if _, ok, reason := VendorEngine(); ok || reason != "" {
@@ -97,7 +97,7 @@ func TestVendorModeIsTheActiveEngine(t *testing.T) {
 // model, the Responses API unless told chat — and it comes before any vendor
 // key in the same environment.
 func TestTheCompanysOwnGatewayComesFirst(t *testing.T) {
-	for _, v := range []string{"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "GROK_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR", "MEMDOOR_MODEL_CONTEXT", "AI_GATEWAY_BASE_URL", "AI_GATEWAY_TOKEN", "AI_GATEWAY_API", "ACME_AI_GATEWAY_TOKEN"} {
+	for _, v := range []string{"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "XAI_API_KEY", "BASETEN_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "AIMLAPI_API_KEY", "GROK_API_KEY", "MEMDOOR_MODEL", "MEMDOOR_VENDOR", "MEMDOOR_MODEL_CONTEXT", "AI_GATEWAY_BASE_URL", "AI_GATEWAY_TOKEN", "AI_GATEWAY_API", "ACME_AI_GATEWAY_TOKEN"} {
 		t.Setenv(v, "")
 	}
 	t.Setenv("AI_GATEWAY_BASE_URL", "https://ai-gateway.corp.example/ai")
@@ -156,5 +156,36 @@ func TestAttributionHeaders(t *testing.T) {
 	setAttributionHeaders(context.Background(), h)
 	if h.Get("X-Email") != "someone-else" || h.Get("X-Team") != "" || h.Get("X-Memdoor-Session") != "" {
 		t.Fatalf("no preset: the turn's user under the gateway's name, no team, no session: %v", h)
+	}
+}
+
+// An AI/ML API key behaves as Groq's: it needs a model, the vendors before it
+// keep their place, and with no model it leaves the OpenRouter key answering.
+func TestAIMLAPIKeyInTheEnvironment(t *testing.T) {
+	clearProviderEnv(t)
+	t.Setenv("MEMDOOR_MODEL", "")
+	t.Setenv("AIMLAPI_BASE_URL", "")
+	t.Setenv("AIMLAPI_API_KEY", "aiml-key")
+	if _, ok, reason := VendorEngine(); ok || !strings.Contains(reason, "MEMDOOR_MODEL") {
+		t.Fatalf("a key with no model is no engine, and says so: ok=%v %q", ok, reason)
+	}
+	t.Setenv("MEMDOOR_MODEL", "z-ai/glm-5.3-flash")
+	re, ok, _ := VendorEngine()
+	if !ok || re.Vendor != VendorAIMLAPI || re.Endpoint != "https://api.aimlapi.com/v1" || re.CtxLen != aimlapiDefaultContext || re.Model != "z-ai/glm-5.3-flash" {
+		t.Fatalf("aimlapi engine: %+v", re)
+	}
+	if c, isOAI := newVendorClient(context.Background(), &re, re.Model).(*oaiClient); !isOAI || c.baseURL != "https://api.aimlapi.com/v1" {
+		t.Fatalf("the OpenAI-compatible client: %+v", c)
+	}
+	if got := providerOfEngine(&re); got != "aimlapi" {
+		t.Fatalf("the engine's provider: %q", got)
+	}
+	t.Setenv("AIMLAPI_BASE_URL", "https://proxy.example/v1/")
+	if re, _, _ := VendorEngine(); re.Endpoint != "https://proxy.example/v1" {
+		t.Fatalf("AIMLAPI_BASE_URL replaces the base: %+v", re)
+	}
+	t.Setenv("DEEPSEEK_API_KEY", "ds-key")
+	if re, _, _ := VendorEngine(); re.Vendor != VendorDeepSeek {
+		t.Fatalf("a vendor that was here first keeps its place: %+v", re)
 	}
 }

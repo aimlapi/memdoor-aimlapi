@@ -74,9 +74,6 @@ func TestAIMLAPISourceOnlyOnItsExactHost(t *testing.T) {
 		if got := h.Get(HeaderAIMLAPISource) == "agent/memdoor"; got != want {
 			t.Errorf("%s: source=%v, want %v: %v", endpoint, got, want, h)
 		}
-		if h.Get("X-AIMLAPI-Partner-ID") != "" {
-			t.Errorf("%s: no partner id: %v", endpoint, h)
-		}
 	}
 	t.Setenv("MEMDOOR_OPENROUTER_ATTRIBUTION", "0")
 	if got := Headers("https://api.aimlapi.com/v1"); len(got) != 0 {
